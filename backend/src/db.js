@@ -1,22 +1,22 @@
 require('dotenv').config();
 const { Pool } = require('pg');
 
+const connectionString = process.env.DATABASE_URL; // ✅ variable completa de Neon
+
 const pool = new Pool({
-    host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT ? Number(process.env.DB_PORT) : 5432,
-    user: process.env.DB_USER || 'postgres',
-    password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_NAME || 'powerfull_carpenter',
-    max: 10,
-    // !!! LÍNEA AÑADIDA PARA SSL EN PRODUCCIÓN (RENDER) !!!
-    ssl: {
-        rejectUnauthorized: false
-    }
-    // !!! FIN LÍNEA AÑADIDA !!!
+  connectionString,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
+
+pool.on('connect', () => {
+  console.log('✅ Conectado a PostgreSQL (Neon)');
 });
 
 pool.on('error', (err) => {
-    console.error('Unexpected error on idle pg client', err);
+  console.error('❌ Error inesperado en el cliente de PostgreSQL:', err);
+  process.exit(-1);
 });
 
 module.exports = pool;
