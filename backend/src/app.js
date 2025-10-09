@@ -6,15 +6,22 @@ const routes = require('./routes');
 
 const app = express();
 
-// Reemplaza con la URL de tu frontend en Vercel
-app.use(cors({ origin: 'https://power-full-carpenter.vercel.app' }));
+// ✅ Permite llamadas desde Vercel
+app.use(cors({
+  origin: ['https://power-full-carpenter.vercel.app'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
+}));
+
 app.use(express.json());
 
+// Health check
 app.get('/health', (req, res) => res.json({ ok: true }));
 
+// Rutas API
 app.use('/api', routes);
 
-// manejador de errores simple
+// Manejador de errores
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(err.status || 500).json({ error: err.message || 'Internal Server Error' });
