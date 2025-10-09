@@ -6,7 +6,8 @@ const routes = require('./routes');
 
 const app = express();
 
-app.use(cors());
+// Reemplaza con la URL de tu frontend en Vercel
+app.use(cors({ origin: 'https://power-full-carpenter.vercel.app' }));
 app.use(express.json());
 
 app.get('/health', (req, res) => res.json({ ok: true }));
