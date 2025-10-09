@@ -4,7 +4,7 @@ import axios from "axios";
 const baseURL =
   import.meta.env.MODE === "development"
     ? "http://localhost:4000/api" // 🖥️ cuando trabajas localmente
-    : "https://power-full-carpenter.onrender.com"; // 🌐 cambia por tu URL de Render
+    : "https://power-full-carpenter.onrender.com/api"; // 🌐 cambia por tu URL de Render
 
 const client = axios.create({
   baseURL,
