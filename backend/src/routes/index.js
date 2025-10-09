@@ -1,28 +1,28 @@
 const express = require('express');
 const router = express.Router();
 
+// Importa las rutas individuales
 const authRoutes = require('./auth');
-const kanbanRoutes = require('./kanban');
+const usersRoutes = require('./users');
+const pedidosRoutes = require('./orders');
+const insumosRoutes = require('./insumos');
+const clientesRoutes = require('./clientes');
+const incidenciasRoutes = require('./incidencias');
+const parametrosRoutes = require('./parametros');
 const inventoryRoutes = require('./inventory');
+const kanbanRoutes = require('./kanban');
 const reportsRoutes = require('./reports');
-const ordersRoutes = require('./orders');
-const clientesRoutes = require("./clientes"); // <-- RUTA DE CLIENTES AGREGADA
 
-
+// Monta las rutas con prefijos
 router.use('/auth', authRoutes);
-router.use('/kanban', kanbanRoutes);
+router.use('/users', usersRoutes);
+router.use('/pedidos', pedidosRoutes);
+router.use('/insumos', insumosRoutes);
+router.use('/clientes', clientesRoutes);
+router.use('/incidencias', incidenciasRoutes);
+router.use('/parametros', parametrosRoutes);
 router.use('/inventory', inventoryRoutes);
+router.use('/kanban', kanbanRoutes);
 router.use('/reports', reportsRoutes);
-router.use('/orders', ordersRoutes);
-router.use('/users', require('./users'));
-router.use('/kanban', require('./kanban'));
-router.use('/inventory', require('./inventory')); // << aquí
-
-router.use('/parametros', require('./parametros'));
-router.use('/insumos', require('./insumos')); // ✅ CRUD completo de insumos
-// 📌 Registrar las rutas
-router.use("/clientes", clientesRoutes);
-
-
 
 module.exports = router;

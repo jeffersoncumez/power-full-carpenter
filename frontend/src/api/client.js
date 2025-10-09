@@ -1,23 +1,17 @@
 import axios from "axios";
 
-// Detecta automáticamente si estás en desarrollo o producción
 const baseURL =
   import.meta.env.MODE === "development"
-    ? "http://localhost:4000/api" // 🖥️ cuando trabajas localmente
-    : "https://power-full-carpenter.onrender.com/api"; // 🌐 cambia por tu URL de Render
+    ? "http://localhost:4000/api"
+    : "https://power-full-carpenter.onrender.com/api";
 
-const client = axios.create({
-  baseURL,
-});
+const client = axios.create({ baseURL });
 
-// Interceptor para agregar token en headers
 client.interceptors.request.use((config) => {
   const auth = localStorage.getItem("auth");
   if (auth) {
     const { token } = JSON.parse(auth);
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
