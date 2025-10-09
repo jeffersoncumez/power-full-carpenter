@@ -1,5 +1,5 @@
-const app = require('./src/app');
-const pool = require('./src/db');
+const app = require('./app');
+const pool = require('./db');
 
 const PORT = process.env.PORT || 4000;
 
