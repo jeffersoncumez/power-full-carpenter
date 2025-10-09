@@ -1,5 +1,8 @@
 import axios from "axios";
 
+const baseURL = import.meta.env.VITE_API_URL; 
+
+
 // 🌐 Backend desplegado en Render
 const client = axios.create({
   baseURL: "https://power-full-carpenter.onrender.com/api",
