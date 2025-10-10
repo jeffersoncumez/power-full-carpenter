@@ -1,12 +1,13 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// ✅ Configuración completa para Vercel y React Router
+// ✅ Configuración óptima para producción en Vercel (SPA React Router)
 export default defineConfig({
   plugins: [react()],
-  base: "/", // 🔹 Asegura rutas correctas al construir
+  base: "./", // 👈 importante: rutas relativas (previene 404 en Vercel)
   build: {
-    outDir: "dist", // salida por defecto de Vite
+    outDir: "dist",
+    emptyOutDir: true,
   },
   server: {
     host: true,
