@@ -1,18 +1,20 @@
 import axios from "axios";
 
-// ✅ Usa variable de entorno Vercel o fallback
+// 🔹 Forzamos a mostrar qué URL está usando
 const baseURL =
-  import.meta.env.VITE_API_URL ||
+  import.meta.env.VITE_API_URL?.trim() ||
   "https://power-full-carpenter.onrender.com/api";
 
-console.log("🛰️ API baseURL:", baseURL);
+console.log("🌐 Usando API baseURL =>", baseURL);
 
 const client = axios.create({
   baseURL,
-  headers: { "Content-Type": "application/json" },
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-// 🔐 Agregar token JWT si existe
+// 🔐 Incluir token si existe
 client.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) config.headers.Authorization = `Bearer ${token}`;
