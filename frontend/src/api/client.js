@@ -1,13 +1,15 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_URL || "https://power-full-carpenter.onrender.com/api";
-if (typeof window !== "undefined") {
-  // Te permitirá confirmar en consola qué URL quedó en el bundle.
-  console.log("[API baseURL]", baseURL);
-}
+// 🌍 Lee la URL base desde las variables de entorno
+const baseURL =
+  import.meta.env.VITE_API_URL ||
+  "https://power-full-carpenter.onrender.com/api"; // fallback
+
+console.log("🛰️ API baseURL:", baseURL);
 
 const client = axios.create({ baseURL });
 
+// 🔐 Interceptor para incluir token JWT
 client.interceptors.request.use((config) => {
   const auth = localStorage.getItem("auth");
   if (auth) {
