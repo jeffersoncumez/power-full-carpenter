@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "cd frontend && vite build --mode production",
+    "build": "vite build --mode production --config vite.config.js",
     "preview": "vite preview --port 4173",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
