@@ -1,7 +1,8 @@
-// src/api/insumos.js
 import axios from "axios";
 
-const API_URL = "http://localhost:4000/api/insumos";
+const API_URL = `${
+  import.meta.env.VITE_API_URL || "https://power-full-carpenter.onrender.com/api"
+}/insumos`;
 
 // 🔹 Obtener todos los insumos
 export async function getInsumos() {
@@ -33,7 +34,7 @@ export async function deleteInsumo(id) {
   return res.data;
 }
 
-
+// 🔹 Niveles de stock
 export async function getNivelesStock() {
   const res = await axios.get(`${API_URL}/niveles`);
   return res.data;
