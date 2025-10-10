@@ -12,5 +12,8 @@
       "src": "/(.*)",
       "dest": "frontend/dist/index.html"
     }
-  ]
+  ],
+  "env": {
+    "VITE_API_URL": "https://power-full-carpenter.onrender.com/api"
+  }
 }
