@@ -1,3 +1,4 @@
+console.log("🌍 VITE_API_URL desde build:", import.meta.env.VITE_API_URL);
 import client from './client';
 
 // Ahora acepta un objeto { email, password }
