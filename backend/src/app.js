@@ -7,16 +7,16 @@ const app = express();
 
 // ✅ CORS seguro y flexible (Render + Vercel + desarrollo local)
 const allowedOrigins = [
-  'http://localhost:5173',                   // desarrollo con Vite
-  'http://localhost:4173',                   // preview local
-  'https://power-full-carpenter.vercel.app', // dominio principal en Vercel
+  'http://localhost:5173',                    // desarrollo con Vite
+  'http://localhost:4173',                    // preview local
+  'https://power-full-carpenter.vercel.app',  // despliegue anterior
+  'https://power-full-carpenter1.vercel.app', // nuevo dominio Vercel
 ];
 
 // Middleware de CORS
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Permite requests sin 'origin' (por ejemplo, herramientas como Postman)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -24,10 +24,11 @@ app.use(
         callback(new Error('No permitido por CORS'));
       }
     },
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
   })
 );
+
 
 app.use(express.json());
 
