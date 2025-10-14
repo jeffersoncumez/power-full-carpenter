@@ -1,15 +1,7 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "frontend/package.json",
-      "use": "@vercel/static-build"
-    }
-  ],
-  "buildCommand": "cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/dist",
-  "routes": [
-    { "src": "/api/(.*)", "dest": "https://power-full-carpenter.onrender.com/api/$1" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/api/:match*", "destination": "https://power-full-carpenter.onrender.com/api/:match*" },
+    { "source": "/:path*", "destination": "/" }
   ]
 }
