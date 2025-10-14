@@ -74,13 +74,13 @@ function App() {
               }
             />
 
-            // Dentro de tus rutas:
+            {/* Clientes */}
             <Route 
               path="/clientes" 
               element={
-              <PrivateRoute allowedRoles={['Supervisor']}>
-                <ClientesPage />
-              </PrivateRoute>
+                <PrivateRoute allowedRoles={['Supervisor']}>
+                  <ClientesPage />
+                </PrivateRoute>
               } 
             />
 
