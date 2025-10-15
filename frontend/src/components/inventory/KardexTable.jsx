@@ -46,7 +46,10 @@ export default function KardexTable({ refresh }) {
       hasta ? `Hasta: ${new Date(hasta).toLocaleDateString()}` : null,
       tipo && tipo !== "Todos" ? `Tipo: ${tipo}` : null,
       insumoId !== "Todos"
-        ? `Insumo: ${insumos.find(i => String(i.insumo_id) === String(insumoId))?.nombre || insumoId}`
+        ? `Insumo: ${
+            insumos.find((i) => String(i.insumo_id) === String(insumoId))?.nombre ||
+            insumoId
+          }`
         : null,
     ]
       .filter(Boolean)
@@ -60,7 +63,7 @@ export default function KardexTable({ refresh }) {
       doc.text(filtros, 14, 22);
     }
 
-    const body = kardex.map(k => [
+    const body = kardex.map((k) => [
       new Date(k.fecha).toLocaleString(),
       k.insumo || "",
       k.tipo || "",
@@ -73,9 +76,11 @@ export default function KardexTable({ refresh }) {
 
     autoTable(doc, {
       startY: filtros ? 28 : 22,
-      head: [["Fecha","Insumo","Tipo","Cantidad","Orden","Tarea","Responsable","Motivo"]],
+      head: [
+        ["Fecha", "Insumo", "Tipo", "Cantidad", "Orden", "Tarea", "Responsable", "Motivo"],
+      ],
       body,
-      styles: { fontSize: 8, overflow: 'linebreak' },
+      styles: { fontSize: 8, overflow: "linebreak" },
       headStyles: { fontSize: 9, halign: "left" },
       columnStyles: {
         0: { cellWidth: 25 },
@@ -92,72 +97,88 @@ export default function KardexTable({ refresh }) {
     doc.save("kardex.pdf");
   };
 
-  useEffect(() => { fetchInsumos(); }, []);
-  useEffect(() => { fetchKardex(); }, [desde, hasta, tipo, insumoId, refresh]);
+  useEffect(() => {
+    fetchInsumos();
+  }, []);
+
+  useEffect(() => {
+    fetchKardex();
+  }, [desde, hasta, tipo, insumoId, refresh]);
 
   return (
-    <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mt-6">
+    <div className="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-gray-100 mt-6">
       {/* 🔹 Encabezado */}
-      <h2 className="text-2xl font-extrabold text-gray-800 mb-6 tracking-tight flex items-center">
+      <h2 className="text-xl sm:text-2xl font-extrabold text-gray-800 mb-4 sm:mb-6 tracking-tight flex items-center">
         📑 Historial de Movimientos (Kardex)
       </h2>
 
-      {/* 🔹 Filtros */}
-      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6 flex flex-wrap gap-4">
-        <input
-          type="date"
-          value={desde}
-          onChange={e => setDesde(e.target.value)}
-          className="p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <input
-          type="date"
-          value={hasta}
-          onChange={e => setHasta(e.target.value)}
-          className="p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <select
-          value={tipo}
-          onChange={e => setTipo(e.target.value)}
-          className="p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option>Todos</option>
-          <option>ENTRADA</option>
-          <option>SALIDA</option>
-          <option>AJUSTE</option>
-        </select>
-        <select
-          value={insumoId}
-          onChange={e => setInsumoId(e.target.value)}
-          className="p-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        >
-          <option value="Todos">Todos los Insumos</option>
-          {insumos.map(i => (
-            <option key={i.insumo_id} value={i.insumo_id}>{i.nombre}</option>
-          ))}
-        </select>
-        <button
-          onClick={exportPDF}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 active:bg-blue-800 transition shadow-sm"
-          disabled={!kardex.length}
-        >
-          Exportar PDF
-        </button>
+      {/* 🔹 Filtros responsivos */}
+      <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-6 flex flex-wrap gap-3 sm:gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <input
+            type="date"
+            value={desde}
+            onChange={(e) => setDesde(e.target.value)}
+            className="p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+          />
+          <input
+            type="date"
+            value={hasta}
+            onChange={(e) => setHasta(e.target.value)}
+            className="p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+          />
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <select
+            value={tipo}
+            onChange={(e) => setTipo(e.target.value)}
+            className="p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+          >
+            <option>Todos</option>
+            <option>ENTRADA</option>
+            <option>SALIDA</option>
+            <option>AJUSTE</option>
+          </select>
+
+          <select
+            value={insumoId}
+            onChange={(e) => setInsumoId(e.target.value)}
+            className="p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 w-full sm:w-auto"
+          >
+            <option value="Todos">Todos los Insumos</option>
+            {insumos.map((i) => (
+              <option key={i.insumo_id} value={i.insumo_id}>
+                {i.nombre}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="w-full sm:w-auto sm:ml-auto">
+          <button
+            onClick={exportPDF}
+            className="w-full sm:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 active:bg-blue-800 transition shadow-sm"
+            disabled={!kardex.length}
+          >
+            Exportar PDF
+          </button>
+        </div>
       </div>
 
-      {/* 🔹 Tabla */}
-      <div className="overflow-x-auto">
+      {/* 🔹 Tabla responsive */}
+      <div className="overflow-x-auto -mx-2 sm:mx-0">
         <table className="min-w-full text-sm text-left border-collapse">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="p-3 text-gray-700 font-semibold">Fecha</th>
-              <th className="p-3 text-gray-700 font-semibold">Insumo</th>
-              <th className="p-3 text-gray-700 font-semibold">Tipo</th>
-              <th className="p-3 text-gray-700 font-semibold">Cantidad</th>
-              <th className="p-3 text-gray-700 font-semibold">Orden</th>
-              <th className="p-3 text-gray-700 font-semibold">Tarea</th>
-              <th className="p-3 text-gray-700 font-semibold">Responsable</th>
-              <th className="p-3 text-gray-700 font-semibold">Motivo</th>
+              <th className="p-2 sm:p-3 text-gray-700 font-semibold">Fecha</th>
+              <th className="p-2 sm:p-3 text-gray-700 font-semibold">Insumo</th>
+              <th className="p-2 sm:p-3 text-gray-700 font-semibold">Tipo</th>
+              <th className="p-2 sm:p-3 text-gray-700 font-semibold">Cantidad</th>
+              <th className="p-2 sm:p-3 text-gray-700 font-semibold">Orden</th>
+              <th className="p-2 sm:p-3 text-gray-700 font-semibold">Tarea</th>
+              <th className="p-2 sm:p-3 text-gray-700 font-semibold">Responsable</th>
+              <th className="p-2 sm:p-3 text-gray-700 font-semibold">Motivo</th>
             </tr>
           </thead>
           <tbody>
@@ -165,31 +186,43 @@ export default function KardexTable({ refresh }) {
               kardex.map((k, idx) => (
                 <tr
                   key={k.movimiento_id}
-                  className={`hover:bg-gray-50 transition ${idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'}`}
+                  className={`hover:bg-gray-50 transition-colors ${
+                    idx % 2 === 0 ? "bg-white" : "bg-gray-50/40"
+                  }`}
                 >
-                  <td className="p-3 text-gray-600">{new Date(k.fecha).toLocaleString()}</td>
-                  <td className="p-3 font-medium text-gray-800">{k.insumo}</td>
-                  <td className="p-3">
-                    <span className={`px-3 py-1 rounded-full text-xs font-semibold border
-                      ${k.tipo === 'ENTRADA'
-                        ? 'bg-green-100 text-green-700 border-green-200'
-                        : k.tipo === 'SALIDA'
-                        ? 'bg-red-100 text-red-700 border-red-200'
-                        : 'bg-yellow-100 text-yellow-700 border-yellow-200'
-                      }`}>
+                  <td className="p-2 sm:p-3 text-gray-600 whitespace-nowrap">
+                    {new Date(k.fecha).toLocaleString()}
+                  </td>
+                  <td className="p-2 sm:p-3 font-medium text-gray-800 whitespace-nowrap">
+                    {k.insumo}
+                  </td>
+                  <td className="p-2 sm:p-3">
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-semibold border capitalize
+                        ${
+                          k.tipo === "ENTRADA"
+                            ? "bg-green-100 text-green-700 border-green-200"
+                            : k.tipo === "SALIDA"
+                            ? "bg-red-100 text-red-700 border-red-200"
+                            : "bg-yellow-100 text-yellow-700 border-yellow-200"
+                        }`}
+                    >
                       {k.tipo}
                     </span>
                   </td>
-                  <td className="p-3 text-gray-700">{k.cantidad}</td>
-                  <td className="p-3 text-gray-700">{k.orden}</td>
-                  <td className="p-3 text-gray-700">{k.tarea}</td>
-                  <td className="p-3 text-gray-700">{k.responsable}</td>
-                  <td className="p-3 text-gray-600">{k.motivo}</td>
+                  <td className="p-2 sm:p-3 text-gray-700">{k.cantidad}</td>
+                  <td className="p-2 sm:p-3 text-gray-700">{k.orden}</td>
+                  <td className="p-2 sm:p-3 text-gray-700">{k.tarea}</td>
+                  <td className="p-2 sm:p-3 text-gray-700">{k.responsable}</td>
+                  <td className="p-2 sm:p-3 text-gray-600">{k.motivo}</td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="8" className="text-center p-6 text-gray-500 italic">
+                <td
+                  colSpan="8"
+                  className="text-center p-4 sm:p-6 text-gray-500 italic"
+                >
                   No hay movimientos registrados
                 </td>
               </tr>

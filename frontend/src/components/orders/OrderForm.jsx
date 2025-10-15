@@ -1,60 +1,60 @@
-import { useState, useEffect } from 'react';
-import { createOrder } from '../../api/orders';
-import { getOperarios } from '../../api/users';
-import { getParametros } from '../../api/parametros';
-import { getClientes, addCliente } from '../../api/clientes'; // 👈 integración clientes
+import { useState, useEffect } from "react";
+import { createOrder } from "../../api/orders";
+import { getOperarios } from "../../api/users";
+import { getParametros } from "../../api/parametros";
+import { getClientes, addCliente } from "../../api/clientes";
 
 export default function OrderForm({ onOrderCreated }) {
   const [clientes, setClientes] = useState([]);
-  const [clienteId, setClienteId] = useState('');
-  const [nombreCliente, setNombreCliente] = useState('');
-
+  const [clienteId, setClienteId] = useState("");
+  const [nombreCliente, setNombreCliente] = useState("");
   const [showNuevoCliente, setShowNuevoCliente] = useState(false);
   const [nuevoCliente, setNuevoCliente] = useState({
-    nombre: '',
-    telefono: '',
-    correo: '',
-    direccion: ''
+    nombre: "",
+    telefono: "",
+    correo: "",
+    direccion: "",
   });
 
-  const [prioridad, setPrioridad] = useState('Normal');
-  const [descripcion, setDescripcion] = useState('');
-  const [area, setArea] = useState('');
-  const [asignadoA, setAsignadoA] = useState('');
-  const [fechaCompromiso, setFechaCompromiso] = useState('');
+  const [prioridad, setPrioridad] = useState("Normal");
+  const [descripcion, setDescripcion] = useState("");
+  const [area, setArea] = useState("");
+  const [asignadoA, setAsignadoA] = useState("");
+  const [fechaCompromiso, setFechaCompromiso] = useState("");
   const [operarios, setOperarios] = useState([]);
   const [paramAreas, setParamAreas] = useState([]);
   const [paramPrioridades, setParamPrioridades] = useState([]);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
+  // 🔹 Carga inicial de datos dinámicos
   useEffect(() => {
     (async () => {
       try {
-        const ops = await getOperarios();
+        const [ops, areas, prioridades, cls] = await Promise.all([
+          getOperarios(),
+          getParametros("area"),
+          getParametros("prioridad"),
+          getClientes(),
+        ]);
         setOperarios(ops);
-
-        const areas = await getParametros('area');
         setParamAreas(areas);
-
-        const prioridades = await getParametros('prioridad');
         setParamPrioridades(prioridades);
-
-        const cls = await getClientes();
         setClientes(cls);
       } catch (e) {
-        console.error('Error cargando datos dinámicos', e);
+        console.error("Error cargando datos dinámicos", e);
       }
     })();
   }, []);
 
+  // 🔹 Crear cliente nuevo
   const handleCrearCliente = async () => {
     if (!nuevoCliente.nombre.trim()) return alert("El nombre es obligatorio");
-
     try {
       const cliente = await addCliente(nuevoCliente);
       setClienteId(cliente.cliente_id);
       setNombreCliente(cliente.nombre);
-      setNuevoCliente({ nombre: '', telefono: '', correo: '', direccion: '' });
+      setNuevoCliente({ nombre: "", telefono: "", correo: "", direccion: "" });
       setShowNuevoCliente(false);
       setClientes(await getClientes()); // refrescar lista
     } catch (err) {
@@ -62,17 +62,28 @@ export default function OrderForm({ onOrderCreated }) {
     }
   };
 
+  // 🔹 Crear pedido
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
+    setLoading(true);
 
-    if (!asignadoA) return setError('Debes asignar un operario');
-    if (!area) return setError('Debes seleccionar un área');
+    if (!asignadoA) {
+      setLoading(false);
+      return setError("Debes asignar un operario");
+    }
+    if (!area) {
+      setLoading(false);
+      return setError("Debes seleccionar un área");
+    }
 
     try {
       await createOrder({
         cliente_id: clienteId || null,
-        nombre_cliente: nombreCliente || clientes.find(c => c.cliente_id === Number(clienteId))?.nombre || '',
+        nombre_cliente:
+          nombreCliente ||
+          clientes.find((c) => c.cliente_id === Number(clienteId))?.nombre ||
+          "",
         area,
         prioridad,
         descripcion,
@@ -80,33 +91,49 @@ export default function OrderForm({ onOrderCreated }) {
         fecha_compromiso: fechaCompromiso || null,
       });
 
-      // Reset
-      setClienteId('');
-      setNombreCliente('');
-      setPrioridad('Normal');
-      setDescripcion('');
-      setArea('');
-      setAsignadoA('');
-      setFechaCompromiso('');
+      // Resetear formulario
+      setClienteId("");
+      setNombreCliente("");
+      setPrioridad("Normal");
+      setDescripcion("");
+      setArea("");
+      setAsignadoA("");
+      setFechaCompromiso("");
+      setError("");
       if (onOrderCreated) onOrderCreated();
     } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Error creando pedido');
+      setError(
+        err.response?.data?.error || err.message || "Error creando pedido"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl shadow-md space-y-5 border border-gray-100">
-      <h2 className="text-xl font-extrabold text-gray-800 mb-2">📋 Nuevo Pedido</h2>
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-gray-100 space-y-5"
+    >
+      <h2 className="text-2xl font-extrabold text-gray-800 flex items-center">
+        📋 Nuevo Pedido
+      </h2>
+      {error && (
+        <p className="text-red-600 text-sm border border-red-200 bg-red-50 p-2 rounded-md">
+          ⚠️ {error}
+        </p>
+      )}
 
-      {/* Cliente */}
+      {/* 🧍 Cliente */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Cliente</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Cliente
+        </label>
         <select
           value={clienteId}
           onChange={(e) => {
             setClienteId(e.target.value);
-            setNombreCliente('');
+            setNombreCliente("");
           }}
           className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
         >
@@ -120,65 +147,86 @@ export default function OrderForm({ onOrderCreated }) {
 
         <button
           type="button"
-          className="mt-2 text-blue-600 hover:underline text-sm"
           onClick={() => setShowNuevoCliente(true)}
+          className="mt-2 text-blue-600 hover:underline text-sm"
         >
           ➕ Nuevo Cliente
         </button>
       </div>
 
-      {/* Modal Nuevo Cliente */}
+      {/* 🪟 Modal Nuevo Cliente */}
       {showNuevoCliente && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-96">
-            <h3 className="font-semibold mb-3">➕ Registrar Cliente</h3>
+          <div className="bg-white rounded-xl p-6 w-96 shadow-xl">
+            <h3 className="font-semibold mb-3 text-gray-800 text-lg">
+              ➕ Registrar Cliente
+            </h3>
+            <div className="space-y-2">
+              <input
+                value={nuevoCliente.nombre}
+                onChange={(e) =>
+                  setNuevoCliente({ ...nuevoCliente, nombre: e.target.value })
+                }
+                className="w-full border rounded px-3 py-2"
+                placeholder="Nombre del cliente"
+              />
+              <input
+                value={nuevoCliente.telefono}
+                onChange={(e) =>
+                  setNuevoCliente({ ...nuevoCliente, telefono: e.target.value })
+                }
+                className="w-full border rounded px-3 py-2"
+                placeholder="Teléfono"
+              />
+              <input
+                type="email"
+                value={nuevoCliente.correo}
+                onChange={(e) =>
+                  setNuevoCliente({ ...nuevoCliente, correo: e.target.value })
+                }
+                className="w-full border rounded px-3 py-2"
+                placeholder="Correo electrónico"
+              />
+              <textarea
+                value={nuevoCliente.direccion}
+                onChange={(e) =>
+                  setNuevoCliente({
+                    ...nuevoCliente,
+                    direccion: e.target.value,
+                  })
+                }
+                className="w-full border rounded px-3 py-2"
+                placeholder="Dirección"
+                rows={2}
+              />
+            </div>
 
-            <input
-              value={nuevoCliente.nombre}
-              onChange={(e) => setNuevoCliente({ ...nuevoCliente, nombre: e.target.value })}
-              className="w-full border rounded px-3 py-2 mb-2"
-              placeholder="Nombre del cliente"
-            />
-            <input
-              value={nuevoCliente.telefono}
-              onChange={(e) => setNuevoCliente({ ...nuevoCliente, telefono: e.target.value })}
-              className="w-full border rounded px-3 py-2 mb-2"
-              placeholder="Teléfono"
-            />
-            <input
-              value={nuevoCliente.correo}
-              onChange={(e) => setNuevoCliente({ ...nuevoCliente, correo: e.target.value })}
-              className="w-full border rounded px-3 py-2 mb-2"
-              placeholder="Correo electrónico"
-              type="email"
-            />
-            <textarea
-              value={nuevoCliente.direccion}
-              onChange={(e) => setNuevoCliente({ ...nuevoCliente, direccion: e.target.value })}
-              className="w-full border rounded px-3 py-2 mb-2"
-              placeholder="Dirección"
-            />
-
-            <div className="flex justify-end gap-2 mt-3">
-              <button type="button" onClick={() => setShowNuevoCliente(false)} className="px-3 py-1 border rounded">
+            <div className="flex justify-end gap-2 mt-4">
+              <button
+                type="button"
+                onClick={() => setShowNuevoCliente(false)}
+                className="px-3 py-1 border rounded text-gray-600 hover:bg-gray-100"
+              >
                 Cancelar
               </button>
-              <button type="button" onClick={handleCrearCliente} className="px-3 py-1 bg-blue-600 text-white rounded">
+              <button
+                type="button"
+                onClick={handleCrearCliente}
+                className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+              >
                 Guardar
               </button>
             </div>
           </div>
         </div>
       )}
-      
-      {/* Descripción */}
+
+      {/* 🧾 Descripción */}
       <div>
-        <label htmlFor="descripcion" className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
           Descripción del pedido
         </label>
         <textarea
-          id="descripcion"
-          name="descripcion"
           placeholder="Ejemplo: Fabricación de mesa vintage..."
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value)}
@@ -187,14 +235,12 @@ export default function OrderForm({ onOrderCreated }) {
         />
       </div>
 
-      {/* Fecha compromiso */}
+      {/* 📅 Fecha compromiso */}
       <div>
-        <label htmlFor="fechaCompromiso" className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
           Fecha de Compromiso
         </label>
         <input
-          id="fechaCompromiso"
-          name="fechaCompromiso"
           type="date"
           value={fechaCompromiso}
           onChange={(e) => setFechaCompromiso(e.target.value)}
@@ -202,14 +248,12 @@ export default function OrderForm({ onOrderCreated }) {
         />
       </div>
 
-      {/* Prioridad */}
+      {/* ⚡ Prioridad */}
       <div>
-        <label htmlFor="prioridad" className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
           Prioridad
         </label>
         <select
-          id="prioridad"
-          name="prioridad"
           value={prioridad}
           onChange={(e) => setPrioridad(e.target.value)}
           className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
@@ -222,14 +266,12 @@ export default function OrderForm({ onOrderCreated }) {
         </select>
       </div>
 
-      {/* Área */}
+      {/* 🏭 Área */}
       <div>
-        <label htmlFor="area" className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
           Área
         </label>
         <select
-          id="area"
-          name="area"
           value={area}
           onChange={(e) => setArea(e.target.value)}
           className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
@@ -244,14 +286,12 @@ export default function OrderForm({ onOrderCreated }) {
         </select>
       </div>
 
-      {/* Operario */}
+      {/* 👷 Operario */}
       <div>
-        <label htmlFor="asignadoA" className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-gray-700 mb-1">
           Operario Asignado
         </label>
         <select
-          id="asignadoA"
-          name="asignadoA"
           value={asignadoA}
           onChange={(e) => setAsignadoA(e.target.value)}
           className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
@@ -266,13 +306,14 @@ export default function OrderForm({ onOrderCreated }) {
         </select>
       </div>
 
-      {/* Botón */}
-      <div className="flex justify-end">
+      {/* 🚀 Botón Crear */}
+      <div className="flex justify-end pt-2">
         <button
           type="submit"
-          className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
+          disabled={loading}
+          className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 active:bg-blue-800 transition disabled:opacity-50"
         >
-          ➕ Crear Pedido
+          {loading ? "Creando..." : "➕ Crear Pedido"}
         </button>
       </div>
     </form>

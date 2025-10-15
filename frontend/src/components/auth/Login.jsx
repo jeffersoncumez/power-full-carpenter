@@ -1,51 +1,62 @@
-import { useState } from 'react';
-import { login as apiLogin } from '../../api/auth';
-import { useAppContext } from '../../contexts/AppContext';
-import useRedirectByRole from '../../hooks/useRedirectByRole';
-import logoCarpinteria from '../../images/logo-carpinteria.png';
+import { useState } from "react";
+import { login as apiLogin } from "../../api/auth";
+import { useAppContext } from "../../contexts/AppContext";
+import useRedirectByRole from "../../hooks/useRedirectByRole";
+import logoCarpinteria from "../../images/logo-carpinteria.png";
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const { login } = useAppContext();
   const redirectByRole = useRedirectByRole();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
+    setLoading(true);
 
     if (!email.trim() || !password) {
-      setError('Completa ambos campos');
+      setError("Completa ambos campos");
+      setLoading(false);
       return;
     }
+
     try {
       const data = await apiLogin({ email, password });
       login(data);
       redirectByRole(data.role);
     } catch (err) {
-      setError(err.response?.data?.error || err.message || 'Error al iniciar sesión');
+      setError(
+        err.response?.data?.error ||
+          err.message ||
+          "Error al iniciar sesión"
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 px-4 py-8 sm:py-0">
       {/* 🔹 Título principal */}
-      <h1 className="text-3xl font-extrabold text-gray-800 text-center mb-8 tracking-tight">
-        Bienvenido a <span className="text-blue-600">Power Full Carpenter</span>
+      <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-800 text-center mb-6 sm:mb-8 tracking-tight">
+        Bienvenido a{" "}
+        <span className="text-blue-600">Power Full Carpenter</span>
       </h1>
 
-      {/* Caja blanca */}
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md flex flex-col items-center border border-gray-100">
+      {/* 🔹 Caja blanca */}
+      <div className="bg-white p-5 sm:p-8 rounded-2xl shadow-xl w-full max-w-sm sm:max-w-md flex flex-col items-center border border-gray-100">
         {/* Logo */}
         <img
           src={logoCarpinteria}
           alt="Logo Power Full Carpenter"
-          className="h-90 w-auto mb-6 drop-shadow-sm"
+          className="h-40 sm:h-56 w-auto mb-5 sm:mb-6 drop-shadow-sm"
         />
 
         {/* Subtítulo */}
-        <p className="text-gray-600 text-center mb-6">
+        <p className="text-gray-600 text-center mb-6 text-sm sm:text-base">
           Inicia sesión para comenzar tu jornada de trabajo
         </p>
 
@@ -67,7 +78,7 @@ export default function Login() {
               placeholder="ejemplo@correo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="border border-gray-300 px-3 py-2 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              className="border border-gray-300 px-3 py-2 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm sm:text-base"
               required
             />
           </div>
@@ -81,19 +92,30 @@ export default function Login() {
               placeholder="********"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="border border-gray-300 px-3 py-2 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+              className="border border-gray-300 px-3 py-2 w-full rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-sm sm:text-base"
               required
             />
           </div>
 
           <button
             type="submit"
-            className="bg-blue-600 text-white py-2.5 rounded-lg font-semibold hover:bg-blue-700 active:bg-blue-800 transition-colors shadow-sm"
+            disabled={loading}
+            className={`${
+              loading
+                ? "bg-blue-400 cursor-not-allowed"
+                : "bg-blue-600 hover:bg-blue-700 active:bg-blue-800"
+            } text-white py-2.5 rounded-lg font-semibold transition-colors shadow-sm mt-2`}
           >
-            Ingresar
+            {loading ? "Ingresando..." : "Ingresar"}
           </button>
         </form>
       </div>
+
+      {/* Pie de página (solo móvil) */}
+      <p className="text-xs text-gray-400 mt-6 sm:mt-8 text-center">
+        © {new Date().getFullYear()} Power Full Carpenter — Todos los derechos reservados
+      </p>
     </div>
   );
 }
+

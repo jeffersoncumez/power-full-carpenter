@@ -16,8 +16,12 @@ export default function CatalogoInsumos() {
 
   // 🔹 Cargar datos
   const loadData = async () => {
-    const data = await getInsumos();
-    setInsumos(data);
+    try {
+      const data = await getInsumos();
+      setInsumos(data);
+    } catch (err) {
+      console.error("Error cargando insumos:", err);
+    }
   };
 
   useEffect(() => {
@@ -55,13 +59,22 @@ export default function CatalogoInsumos() {
 
   // 🔹 Guardar
   const handleSubmit = async () => {
-    if (editando) {
-      await updateInsumo(editando, { ...form });
-    } else {
-      await addInsumo({ ...form });
+    try {
+      if (!form.nombre.trim()) {
+        alert("El nombre del insumo es obligatorio");
+        return;
+      }
+      if (editando) {
+        await updateInsumo(editando, { ...form });
+      } else {
+        await addInsumo({ ...form });
+      }
+      handleCloseModal();
+      loadData();
+    } catch (err) {
+      console.error("Error guardando insumo:", err);
+      alert("Ocurrió un error al guardar el insumo.");
     }
-    handleCloseModal();
-    loadData();
   };
 
   // 🔹 Eliminar
@@ -73,41 +86,47 @@ export default function CatalogoInsumos() {
   };
 
   return (
-    <div className="bg-white p-6 rounded-xl shadow">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold text-gray-800">📦 Catálogo de Insumos</h3>
+    <div className="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-gray-100 space-y-5">
+      {/* Encabezado */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+        <h3 className="text-2xl font-extrabold text-gray-800 flex items-center">
+          📦 Catálogo de Insumos
+        </h3>
         <button
           onClick={() => handleOpenModal()}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 active:bg-blue-800 transition text-sm font-medium"
         >
           ➕ Agregar Insumo
         </button>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border text-sm">
-          <thead>
-            <tr className="bg-gray-100 text-gray-700">
-              <th className="border px-3 py-2 text-left">Insumo</th>
-              <th className="border px-3 py-2 text-left">Unidad</th>
-              <th className="border px-3 py-2 text-center">Stock</th>
-              <th className="border px-3 py-2 text-center">Stock Mínimo</th>
-              <th className="border px-3 py-2 text-left">Categoría</th>
-              <th className="border px-3 py-2 text-center">Acciones</th>
+      {/* Tabla de insumos */}
+      <div className="overflow-x-auto rounded-xl border border-gray-200">
+        <table className="w-full border-collapse text-sm text-gray-700">
+          <thead className="bg-gray-100 text-gray-700 font-semibold">
+            <tr>
+              <th className="px-3 py-2 border">Insumo</th>
+              <th className="px-3 py-2 border">Unidad</th>
+              <th className="px-3 py-2 border text-center">Stock</th>
+              <th className="px-3 py-2 border text-center">Mínimo</th>
+              <th className="px-3 py-2 border">Categoría</th>
+              <th className="px-3 py-2 border text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {insumos.map((i, idx) => (
               <tr
                 key={i.insumo_id}
-                className={`${idx % 2 === 0 ? "bg-white" : "bg-gray-50"} hover:bg-gray-100 transition`}
+                className={`${
+                  idx % 2 === 0 ? "bg-white" : "bg-gray-50"
+                } hover:bg-gray-100 transition`}
               >
-                <td className="border px-3 py-2">{i.nombre}</td>
-                <td className="border px-3 py-2">{i.unidad_medida}</td>
-                <td className="border px-3 py-2 text-center">{i.stock}</td>
-                <td className="border px-3 py-2 text-center">{i.stock_minimo}</td>
-                <td className="border px-3 py-2">{i.subcategoria}</td>
-                <td className="border px-3 py-2 text-center space-x-2">
+                <td className="px-3 py-2 border font-medium">{i.nombre}</td>
+                <td className="px-3 py-2 border">{i.unidad_medida}</td>
+                <td className="px-3 py-2 border text-center">{i.stock}</td>
+                <td className="px-3 py-2 border text-center">{i.stock_minimo}</td>
+                <td className="px-3 py-2 border">{i.subcategoria || "—"}</td>
+                <td className="px-3 py-2 border text-center space-x-2">
                   <button
                     onClick={() => handleOpenModal(i)}
                     className="bg-yellow-100 text-yellow-700 border border-yellow-300 px-3 py-1 rounded hover:bg-yellow-200 transition"
@@ -125,7 +144,7 @@ export default function CatalogoInsumos() {
             ))}
             {insumos.length === 0 && (
               <tr>
-                <td colSpan="6" className="text-center py-4 text-gray-500">
+                <td colSpan="6" className="text-center py-5 text-gray-500 italic">
                   No hay insumos registrados
                 </td>
               </tr>
@@ -134,11 +153,20 @@ export default function CatalogoInsumos() {
         </table>
       </div>
 
-      {/* 🔹 Modal */}
+      {/* Modal de registro / edición */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-xl shadow-xl w-96 animate-fade-in-down">
-            <h3 className="text-lg font-bold mb-4 text-gray-800">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white p-6 sm:p-7 rounded-2xl shadow-xl w-full max-w-md relative animate-fade-in-down border border-gray-100">
+            {/* Cerrar */}
+            <button
+              onClick={handleCloseModal}
+              className="absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-xl"
+            >
+              ✕
+            </button>
+
+            {/* Título */}
+            <h3 className="text-xl font-extrabold text-gray-800 mb-4">
               {editando ? "✏️ Editar Insumo" : "➕ Agregar Insumo"}
             </h3>
 
@@ -149,7 +177,8 @@ export default function CatalogoInsumos() {
                 value={form.nombre}
                 onChange={handleChange}
                 placeholder="Nombre del insumo"
-                className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                autoFocus
               />
 
               <input
@@ -158,26 +187,33 @@ export default function CatalogoInsumos() {
                 value={form.unidad_medida}
                 onChange={handleChange}
                 placeholder="Unidad (ej: m², litros, unidades)"
-                className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               />
 
-              <input
-                type="number"
-                name="stock"
-                value={form.stock}
-                onChange={handleChange}
-                placeholder="Stock Inicial"
-                className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500"
-              />
-
-              <input
-                type="number"
-                name="stock_minimo"
-                value={form.stock_minimo}
-                onChange={handleChange}
-                placeholder="Stock Mínimo"
-                className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <input
+                    type="number"
+                    name="stock"
+                    value={form.stock}
+                    onChange={handleChange}
+                    placeholder="Stock"
+                    className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                    min="0"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="number"
+                    name="stock_minimo"
+                    value={form.stock_minimo}
+                    onChange={handleChange}
+                    placeholder="Mínimo"
+                    className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
+                    min="0"
+                  />
+                </div>
+              </div>
 
               <input
                 type="text"
@@ -185,22 +221,23 @@ export default function CatalogoInsumos() {
                 value={form.subcategoria}
                 onChange={handleChange}
                 placeholder="Categoría (ej: Ferretería, Pintura, Materiales)"
-                className="w-full border px-3 py-2 rounded focus:ring-2 focus:ring-blue-500"
+                className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
-            <div className="flex justify-end mt-6 space-x-3">
+            {/* Botones */}
+            <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={handleCloseModal}
-                className="px-4 py-2 rounded bg-gray-300 text-gray-700 hover:bg-gray-400 transition"
+                className="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition text-sm font-medium"
               >
                 Cancelar
               </button>
               <button
                 onClick={handleSubmit}
-                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition"
+                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition text-sm font-medium shadow-sm"
               >
-                {editando ? "Guardar Cambios" : "Agregar"}
+                {editando ? "💾 Guardar Cambios" : "✅ Agregar"}
               </button>
             </div>
           </div>

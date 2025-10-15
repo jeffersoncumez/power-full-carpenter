@@ -2,7 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { startTask, pauseTask, finishTask, updateTaskStatus } from "../../api/kanban";
 import { registrarConsumoRapido, getInsumos, getHistorial } from "../../api/inventory";
 import { reportarIncidencia } from "../../api/incidencias";
-import { getMotivos } from "../../api/parametros"; // 👈 Importar motivos dinámicos
+import { getMotivos } from "../../api/parametros";
 import { format } from "date-fns";
 
 export default function TaskModal({ visible, task, onClose, onAction }) {
@@ -10,15 +10,15 @@ export default function TaskModal({ visible, task, onClose, onAction }) {
   const [insumos, setInsumos] = useState([]);
   const [insumoId, setInsumoId] = useState("");
   const [cantidad, setCantidad] = useState("");
-
-  // 👇 Motivos dinámicos
   const [motivos, setMotivos] = useState([]);
   const [motivo, setMotivo] = useState("");
-
   const [tipo, setTipo] = useState("faltante");
   const [urgencia, setUrgencia] = useState("media");
   const [descripcion, setDescripcion] = useState("");
   const [historial, setHistorial] = useState([]);
+
+  // 💡 NUEVO: Variable para verificar si la tarea ha finalizado.
+  const isFinished = task?.estado === "Terminado";
 
   useEffect(() => {
     if (visible) {
@@ -26,21 +26,16 @@ export default function TaskModal({ visible, task, onClose, onAction }) {
 
       getMotivos()
         .then((data) => {
-          if (Array.isArray(data) && data.length) {
-            setMotivos(data);
-          } else {
-            const fallback = [
+          if (Array.isArray(data) && data.length) setMotivos(data);
+          else
+            setMotivos([
               { parametro_id: 1, valor: "Producción" },
               { parametro_id: 2, valor: "Error de corte" },
               { parametro_id: 3, valor: "Defecto de material" },
               { parametro_id: 4, valor: "Pérdida en transporte" },
-            ];
-            setMotivos(fallback);
-          }
+            ]);
         })
-        .catch((e) => {
-          console.error("Error cargando motivos:", e);
-        });
+        .catch((e) => console.error("Error cargando motivos:", e));
 
       loadHistorial();
     }
@@ -117,6 +112,9 @@ export default function TaskModal({ visible, task, onClose, onAction }) {
 
   const handleConsumo = async (e) => {
     e.preventDefault();
+    // 💡 NUEVO: No permitir si la tarea está terminada
+    if (isFinished) return; 
+
     if (!insumoId || !cantidad || Number(cantidad) <= 0 || !motivo) {
       alert("Debes seleccionar insumo, motivo y una cantidad válida.");
       return;
@@ -128,7 +126,6 @@ export default function TaskModal({ visible, task, onClose, onAction }) {
         cantidad: Number(cantidad),
         motivo: String(motivo),
       });
-      // limpiar
       setCantidad("");
       setInsumoId("");
       setMotivo("");
@@ -141,6 +138,9 @@ export default function TaskModal({ visible, task, onClose, onAction }) {
 
   const handleIncidencia = async (e) => {
     e.preventDefault();
+    // 💡 NUEVO: No permitir si la tarea está terminada
+    if (isFinished) return;
+
     if (!descripcion.trim()) {
       alert("Debes ingresar una descripción para la incidencia.");
       return;
@@ -152,7 +152,6 @@ export default function TaskModal({ visible, task, onClose, onAction }) {
         urgencia,
         descripcion,
       });
-      // limpiar
       setDescripcion("");
       setTipo("faltante");
       setUrgencia("media");
@@ -175,28 +174,32 @@ export default function TaskModal({ visible, task, onClose, onAction }) {
     if (prioridad.toLowerCase() === "baja")
       colorClass = "bg-gray-100 text-gray-700 border border-gray-300";
     return (
-      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${colorClass}`}>
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-semibold ${colorClass}`}
+      >
         {prioridad}
       </span>
     );
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-      <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-fade-in-down relative">
-        {/* Botón cerrar */}
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 px-3 sm:px-6">
+      <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto animate-fade-in-down relative">
+        {/* ... (código anterior sin cambios) */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
+          className="absolute top-3 right-4 text-gray-400 hover:text-gray-600 text-2xl"
         >
           ✕
         </button>
 
-        {/* Título */}
-        <h2 className="text-2xl font-extrabold text-gray-800 mb-4">{task.titulo}</h2>
+        {/* 🔹 Título */}
+        <h2 className="text-xl sm:text-2xl font-extrabold text-gray-800 mb-4">
+          {task.titulo}
+        </h2>
 
-        {/* Info de tarea */}
-        <div className="grid grid-cols-2 gap-2 text-sm text-gray-700 mb-6">
+        {/* 🔹 Info de tarea */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-gray-700 mb-6">
           <p>
             <strong>Pedido:</strong> {task.nombre_cliente} (#{task.pedido_id})
           </p>
@@ -219,16 +222,30 @@ export default function TaskModal({ visible, task, onClose, onAction }) {
               : "-"}
           </p>
         </div>
+        {/* 💡 NUEVO: Sección de Descripción del Pedido */}
+        {task.descripcion && (
+          <div className="bg-blue-50 border-l-4 border-blue-400 p-3 mb-6 rounded-lg shadow-sm">
+            <p className="font-bold text-blue-800 text-sm mb-1">
+              📝 Descripción del Pedido:
+            </p>
+            <p className="text-sm text-blue-700 whitespace-pre-wrap">
+              {task.descripcion}
+            </p>
+          </div>
+        )}
 
-        {/* Cronómetro */}
+
+        {/* 🔹 Cronómetro */}
         <div className="bg-gray-50 rounded-lg p-4 text-center mb-6 border">
           <p className="font-semibold text-gray-700">⏱ Tiempo de Tarea</p>
-          <p className="text-2xl font-bold text-gray-800">{formatTime(elapsedSeconds)}</p>
-          <div className="mt-3 flex justify-center gap-3">
+          <p className="text-2xl sm:text-3xl font-bold text-gray-800">
+            {formatTime(elapsedSeconds)}
+          </p>
+          <div className="mt-3 flex flex-wrap justify-center gap-3">
             {task.estado !== "Terminado" && !task.inicio && (
               <button
                 onClick={handleStart}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 active:bg-green-800 transition"
               >
                 Iniciar
               </button>
@@ -236,7 +253,7 @@ export default function TaskModal({ visible, task, onClose, onAction }) {
             {task.estado !== "Terminado" && task.inicio && (
               <button
                 onClick={handlePause}
-                className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 transition"
+                className="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600 active:bg-yellow-700 transition"
               >
                 Pausar
               </button>
@@ -244,7 +261,7 @@ export default function TaskModal({ visible, task, onClose, onAction }) {
             {task.estado !== "Terminado" && (
               <button
                 onClick={handleFinish}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 active:bg-blue-800 transition"
               >
                 Finalizar
               </button>
@@ -252,17 +269,19 @@ export default function TaskModal({ visible, task, onClose, onAction }) {
           </div>
         </div>
 
-        {/* Formularios */}
+        {/* 🔹 Formularios */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           {/* Consumo */}
-          <form onSubmit={handleConsumo} className="border rounded-xl p-4 shadow-sm">
-            <h3 className="font-semibold text-gray-800 mb-3">
+          <form onSubmit={handleConsumo} className={`border rounded-xl p-4 shadow-sm ${isFinished ? 'opacity-50 cursor-not-allowed' : ''}`}>
+            <h3 className="font-semibold text-gray-800 mb-3 text-center md:text-left">
               ➕ Registro Rápido de Consumo
             </h3>
             <select
               value={insumoId}
               onChange={(e) => setInsumoId(e.target.value)}
               className="w-full border rounded-lg px-3 py-2 mb-3 text-sm focus:ring-blue-500"
+              // 💡 CAMBIO: Deshabilitar si está terminado
+              disabled={isFinished} 
             >
               <option value="">Selecciona un insumo</option>
               {insumos.map((i) => (
@@ -278,11 +297,15 @@ export default function TaskModal({ visible, task, onClose, onAction }) {
               onChange={(e) => setCantidad(e.target.value)}
               placeholder="Cantidad"
               className="w-full border rounded-lg px-3 py-2 mb-3 text-sm focus:ring-blue-500"
+              // 💡 CAMBIO: Deshabilitar si está terminado
+              disabled={isFinished} 
             />
             <select
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
               className="w-full border rounded-lg px-3 py-2 mb-3 text-sm focus:ring-blue-500"
+              // 💡 CAMBIO: Deshabilitar si está terminado
+              disabled={isFinished}
             >
               <option value="">Seleccione un motivo</option>
               {motivos.map((m) => (
@@ -293,19 +316,26 @@ export default function TaskModal({ visible, task, onClose, onAction }) {
             </select>
             <button
               type="submit"
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg w-full hover:bg-blue-700 transition"
+              // 💡 CAMBIO: Deshabilitar y ajustar clase si está terminado
+              disabled={isFinished}
+              className={`text-white px-4 py-2 rounded-lg w-full transition ${isFinished ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 active:bg-blue-800'}`}
             >
               Registrar Consumo
             </button>
+            {isFinished && <p className="text-red-500 text-xs mt-2 text-center">La tarea está terminada.</p>}
           </form>
 
           {/* Incidencia */}
-          <form onSubmit={handleIncidencia} className="border rounded-xl p-4 shadow-sm">
-            <h3 className="font-semibold text-gray-800 mb-3">⚠️ Reportar Incidencia</h3>
+          <form onSubmit={handleIncidencia} className={`border rounded-xl p-4 shadow-sm ${isFinished ? 'opacity-50 cursor-not-allowed' : ''}`}>
+            <h3 className="font-semibold text-gray-800 mb-3 text-center md:text-left">
+              ⚠️ Reportar Incidencia
+            </h3>
             <select
               value={tipo}
               onChange={(e) => setTipo(e.target.value)}
               className="w-full border rounded-lg px-3 py-2 mb-3 text-sm focus:ring-blue-500"
+              // 💡 CAMBIO: Deshabilitar si está terminado
+              disabled={isFinished}
             >
               <option value="faltante">Faltante</option>
               <option value="defecto">Defecto</option>
@@ -315,6 +345,8 @@ export default function TaskModal({ visible, task, onClose, onAction }) {
               value={urgencia}
               onChange={(e) => setUrgencia(e.target.value)}
               className="w-full border rounded-lg px-3 py-2 mb-3 text-sm focus:ring-blue-500"
+              // 💡 CAMBIO: Deshabilitar si está terminado
+              disabled={isFinished}
             >
               <option value="baja">Baja</option>
               <option value="media">Media</option>
@@ -324,22 +356,30 @@ export default function TaskModal({ visible, task, onClose, onAction }) {
               value={descripcion}
               onChange={(e) => setDescripcion(e.target.value)}
               placeholder="Descripción del problema..."
-              className="w-full border rounded-lg px-3 py-2 mb-3 text-sm focus:ring-blue-500"
+              className="w-full border rounded-lg px-3 py-2 mb-3 text-sm focus:ring-blue-500 min-h-[80px]"
+              // 💡 CAMBIO: Deshabilitar si está terminado
+              disabled={isFinished}
             />
             <button
               type="submit"
-              className="bg-red-600 text-white px-4 py-2 rounded-lg w-full hover:bg-red-700 transition"
+              // 💡 CAMBIO: Deshabilitar y ajustar clase si está terminado
+              disabled={isFinished}
+              className={`text-white px-4 py-2 rounded-lg w-full transition ${isFinished ? 'bg-gray-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-700 active:bg-red-800'}`}
             >
               Reportar Incidencia
             </button>
+            {isFinished && <p className="text-red-500 text-xs mt-2 text-center">La tarea está terminada.</p>}
           </form>
         </div>
 
-        {/* Historial */}
+        {/* 🔹 Historial */}
+        {/* ... (código anterior sin cambios) */}
         <div className="bg-gray-50 p-4 rounded-xl border">
-          <h3 className="font-semibold text-gray-800 mb-3">📜 Historial de Tarea</h3>
+          <h3 className="font-semibold text-gray-800 mb-3 text-center md:text-left">
+            📜 Historial de Tarea
+          </h3>
           {historial.length === 0 ? (
-            <p className="text-sm text-gray-500">Sin registros todavía</p>
+            <p className="text-sm text-gray-500 text-center">Sin registros todavía</p>
           ) : (
             <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
               {historial.map((h, idx) => (

@@ -2,7 +2,7 @@ import axios from "axios";
 
 // 🔹 Forzamos a mostrar qué URL está usando
 const baseURL =
-  import.meta.env.VITE_API_URL?.trim() ||
+  import.meta.env.VITE_API_URL?.trim?.() ||
   "https://power-full-carpenter.onrender.com/api";
 
 console.log("🌐 Usando API baseURL =>", baseURL);

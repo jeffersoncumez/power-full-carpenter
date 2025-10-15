@@ -1,4 +1,3 @@
-// /frontend/src/pages/InventoryPage.jsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../contexts/AppContext";
@@ -8,13 +7,13 @@ import MovementForm from "../components/inventory/MovementForm";
 import KardexTable from "../components/inventory/KardexTable";
 import IncidenciasList from "../components/inventory/IncidenciasList";
 
-// 🔹 Tabla de Alertas de Stock Bajo
+// 🔹 Tabla de Alertas de Stock Bajo (responsive)
 const AlertasTable = ({ alertas }) => (
-  <div className="mb-8 bg-white rounded-xl shadow p-4 border border-red-200">
-    <h2 className="text-xl font-bold text-red-600 mb-3 flex items-center gap-2">
+  <div className="mb-8 bg-white rounded-xl shadow p-4 border border-red-200 overflow-x-auto">
+    <h2 className="text-lg sm:text-xl font-bold text-red-600 mb-3 flex items-center gap-2">
       ⚠️ Alertas de Stock Bajo
     </h2>
-    <table className="w-full border text-sm">
+    <table className="min-w-[600px] sm:min-w-full border text-sm">
       <thead className="bg-red-100 text-red-800">
         <tr>
           <th className="p-2 border">Nombre</th>
@@ -69,22 +68,22 @@ export default function InventoryPage() {
   }, [refreshInventory]);
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-4 sm:p-6 space-y-8 bg-gray-50 min-h-screen">
       {/* 🔹 Encabezado */}
-      <div className="flex flex-col items-center relative">
+      <div className="flex flex-col items-center relative text-center">
         {user?.role?.toLowerCase() === "supervisor" && (
           <button
             onClick={() => navigate("/dashboard")}
-            className="absolute left-0 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+            className="absolute left-2 sm:left-0 top-0 sm:top-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
           >
             ← Ir al Dashboard
           </button>
         )}
 
-        <h1 className="text-4xl font-extrabold text-gray-800">
+        <h1 className="text-2xl sm:text-4xl font-extrabold text-gray-800 mt-12 sm:mt-0">
           Gestión de Inventario
         </h1>
-        <p className="text-gray-500 mt-2">
+        <p className="text-gray-500 mt-2 text-sm sm:text-base max-w-lg px-4">
           Control de insumos, movimientos y reportes de stock
         </p>
       </div>
@@ -93,13 +92,12 @@ export default function InventoryPage() {
       {alertas.length > 0 && <AlertasTable alertas={alertas} />}
 
       {/* 🔹 Inventario */}
-      <div className="bg-white rounded-xl shadow p-4 border border-gray-200">
-     
+      <div className="bg-white rounded-xl shadow p-4 sm:p-6 border border-gray-200 overflow-x-auto">
         <InventoryList insumos={insumos} />
       </div>
 
       {/* 🔹 Formulario de movimientos */}
-      <div className="bg-white rounded-xl shadow p-4 border border-gray-200">
+      <div className="bg-white rounded-xl shadow p-4 sm:p-6 border border-gray-200">
         <MovementForm
           onSuccess={() => {
             setRefreshInventory((r) => r + 1);
@@ -109,32 +107,35 @@ export default function InventoryPage() {
       </div>
 
       {/* 🔹 Botones extra */}
-      <div className="mt-6 flex flex-col sm:flex-row gap-4">
+      <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center sm:justify-start">
         <button
           onClick={() => setShowKardex(!showKardex)}
-          className="bg-blue-600 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-700 transition"
+          className="bg-blue-600 text-white px-5 py-2 rounded-lg shadow hover:bg-blue-700 transition w-full sm:w-auto"
         >
           {showKardex ? "Ocultar Kardex" : "📊 Ver Kardex"}
         </button>
-        {/*
+
+        {/* Si en el futuro deseas mostrar Incidencias, este bloque ya está preparado */}
+        {/* 
         <button
           onClick={() => setShowIncidencias(!showIncidencias)}
-          className="bg-indigo-600 text-white px-5 py-2 rounded-lg shadow hover:bg-indigo-700 transition"
+          className="bg-indigo-600 text-white px-5 py-2 rounded-lg shadow hover:bg-indigo-700 transition w-full sm:w-auto"
         >
           {showIncidencias ? "Ocultar Incidencias" : "⚠️ Ver Incidencias"}
-        </button>  */}
-      </div>   
+        </button>
+        */}
+      </div>
 
       {/* 🔹 Kardex */}
       {showKardex && (
-        <div className="mt-6 bg-white rounded-xl shadow p-4 border border-gray-200">
+        <div className="mt-6 bg-white rounded-xl shadow p-4 sm:p-6 border border-gray-200 overflow-x-auto">
           <KardexTable refresh={refreshKardex} />
         </div>
       )}
 
       {/* 🔹 Incidencias */}
       {showIncidencias && (
-        <div className="mt-6 bg-white rounded-xl shadow p-4 border border-gray-200">
+        <div className="mt-6 bg-white rounded-xl shadow p-4 sm:p-6 border border-gray-200 overflow-x-auto">
           <IncidenciasList />
         </div>
       )}

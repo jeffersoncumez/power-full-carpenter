@@ -1,60 +1,72 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from "react";
 
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true); // 🆕 Estado global de carga
 
-  // Al iniciar sesión
+  // 🟢 Iniciar sesión
   const login = (data) => {
-    setUser({
+    const userData = {
       user_id: data.user_id,
       name: data.name,
       email: data.email,
       role: data.role,
-    });
+    };
+
+    setUser(userData);
     setToken(data.token);
 
-    // Guardar en localStorage
     localStorage.setItem(
-      'auth',
-      JSON.stringify({
-        user: {
-          user_id: data.user_id,
-          name: data.name,
-          email: data.email,
-          role: data.role,
-        },
-        token: data.token,
-      })
+      "auth",
+      JSON.stringify({ user: userData, token: data.token })
     );
   };
 
-  // Cerrar sesión
+  // 🔴 Cerrar sesión
   const logout = () => {
     setUser(null);
     setToken(null);
-    localStorage.removeItem('auth');
+    localStorage.removeItem("auth");
   };
 
-  // Rehidratar al cargar la app
+  // 🔄 Rehidratar sesión al cargar la app
   useEffect(() => {
-    const storedAuth = localStorage.getItem('auth');
-    if (storedAuth) {
+    const loadAuth = () => {
       try {
-        const { user, token } = JSON.parse(storedAuth);
-        setUser(user);
-        setToken(token);
+        const storedAuth = localStorage.getItem("auth");
+        if (storedAuth) {
+          const { user, token } = JSON.parse(storedAuth);
+          if (user && token) {
+            setUser(user);
+            setToken(token);
+          }
+        }
       } catch (err) {
-        console.error('Error leyendo auth en localStorage', err);
-        localStorage.removeItem('auth');
+        console.error("❌ Error al leer auth en localStorage:", err);
+        localStorage.removeItem("auth");
+      } finally {
+        setLoading(false); // ✅ Marca carga completada
       }
-    }
+    };
+
+    loadAuth();
+
+    // 🧩 Escucha cierre de sesión en otras pestañas
+    const handleStorageChange = (e) => {
+      if (e.key === "auth" && !e.newValue) {
+        setUser(null);
+        setToken(null);
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   return (
-    <AppContext.Provider value={{ user, token, login, logout }}>
+    <AppContext.Provider value={{ user, token, login, logout, loading }}>
       {children}
     </AppContext.Provider>
   );

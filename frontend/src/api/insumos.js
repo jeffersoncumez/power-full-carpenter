@@ -1,41 +1,31 @@
-import axios from "axios";
+import client from "./client";
 
-const API_URL = `${
-  import.meta.env.VITE_API_URL || "https://power-full-carpenter.onrender.com/api"
-}/insumos`;
-
-// 🔹 Obtener todos los insumos
-export async function getInsumos() {
-  const res = await axios.get(API_URL);
+export const getInsumos = async () => {
+  const res = await client.get("/insumos");
   return res.data;
-}
+};
 
-// 🔹 Obtener un insumo por ID
-export async function getInsumoById(id) {
-  const res = await axios.get(`${API_URL}/${id}`);
+export const getInsumoById = async (id) => {
+  const res = await client.get(`/insumos/${id}`);
   return res.data;
-}
+};
 
-// 🔹 Crear un nuevo insumo
-export async function addInsumo(data) {
-  const res = await axios.post(API_URL, data);
+export const addInsumo = async (data) => {
+  const res = await client.post("/insumos", data);
   return res.data;
-}
+};
 
-// 🔹 Actualizar un insumo
-export async function updateInsumo(id, data) {
-  const res = await axios.put(`${API_URL}/${id}`, data);
+export const updateInsumo = async (id, data) => {
+  const res = await client.put(`/insumos/${id}`, data);
   return res.data;
-}
+};
 
-// 🔹 Eliminar un insumo
-export async function deleteInsumo(id) {
-  const res = await axios.delete(`${API_URL}/${id}`);
+export const deleteInsumo = async (id) => {
+  const res = await client.delete(`/insumos/${id}`);
   return res.data;
-}
+};
 
-// 🔹 Niveles de stock
-export async function getNivelesStock() {
-  const res = await axios.get(`${API_URL}/niveles`);
+export const getNivelesStock = async () => {
+  const res = await client.get("/insumos/niveles");
   return res.data;
-}
+};

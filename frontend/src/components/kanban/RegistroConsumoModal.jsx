@@ -14,11 +14,10 @@ export default function RegistroConsumoModal({ visible, task, onClose, onSuccess
   const [loading, setLoading] = useState(false);
   const [loadingMotivos, setLoadingMotivos] = useState(false);
 
-  // Cargar insumos y motivos cuando el modal sea visible
+  // 🔹 Cargar insumos y motivos al abrir el modal
   useEffect(() => {
     if (!visible) return;
 
-    // Insumos
     setLoading(true);
     getInsumos()
       .then((data) => setInsumos(data || []))
@@ -28,7 +27,6 @@ export default function RegistroConsumoModal({ visible, task, onClose, onSuccess
       })
       .finally(() => setLoading(false));
 
-    // Motivos dinámicos
     setLoadingMotivos(true);
     getMotivos()
       .then((data) => {
@@ -55,7 +53,7 @@ export default function RegistroConsumoModal({ visible, task, onClose, onSuccess
       .finally(() => setLoadingMotivos(false));
   }, [visible]);
 
-  // Cuando selecciones un insumo, mostramos su unidad
+  // 🔹 Seleccionar insumo → mostrar su unidad
   const handleSelectInsumo = (e) => {
     const id = e.target.value;
     setInsumoId(id);
@@ -63,7 +61,7 @@ export default function RegistroConsumoModal({ visible, task, onClose, onSuccess
     setUnidad(found?.unidad_medida || "");
   };
 
-  // Enviar
+  // 🔹 Enviar registro
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!insumoId || !cantidad || Number(cantidad) <= 0 || !motivo) {
@@ -81,7 +79,7 @@ export default function RegistroConsumoModal({ visible, task, onClose, onSuccess
       alert("✅ Consumo registrado correctamente");
       onSuccess?.();
 
-      // limpiar estados
+      // Reset
       setInsumoId("");
       setCantidad("");
       setUnidad("");
@@ -97,42 +95,51 @@ export default function RegistroConsumoModal({ visible, task, onClose, onSuccess
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-      <div className="bg-white rounded-2xl shadow-xl p-6 w-full max-w-md animate-fade-in-down">
-        {/* Encabezado */}
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50 px-3 sm:px-0">
+      <div className="bg-white rounded-2xl shadow-xl p-5 sm:p-6 w-full max-w-md animate-fade-in-down">
+        {/* 🔹 Encabezado */}
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-extrabold text-gray-800">🛠️ Registro de Consumo</h2>
+          <h2 className="text-lg sm:text-xl font-extrabold text-gray-800">
+            🛠️ Registro de Consumo
+          </h2>
           <button
             type="button"
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-lg"
+            className="text-gray-400 hover:text-gray-600 text-xl transition"
           >
             ✕
           </button>
         </div>
 
-        {/* Nombre de tarea */}
+        {/* 🔹 Tarea actual */}
         <p className="text-sm text-gray-600 mb-4">
-          Tarea seleccionada: <span className="font-medium">{task?.title}</span>
+          Tarea seleccionada:{" "}
+          <span className="font-semibold text-gray-800">
+            {task?.titulo || task?.title || "Sin título"}
+          </span>
         </p>
 
-        {/* Formulario */}
+        {/* 🔹 Formulario */}
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Insumo */}
           <div>
-            <label htmlFor="insumo" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="insumo"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Insumo
             </label>
             <select
               id="insumo"
-              name="insumo"
               value={insumoId}
               onChange={handleSelectInsumo}
-              className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
               disabled={loading}
             >
-              <option value="">{loading ? "Cargando..." : "Seleccione un insumo"}</option>
+              <option value="">
+                {loading ? "Cargando insumos..." : "Seleccione un insumo"}
+              </option>
               {insumos.map((i) => (
                 <option key={i.insumo_id} value={i.insumo_id}>
                   {i.nombre}
@@ -142,53 +149,63 @@ export default function RegistroConsumoModal({ visible, task, onClose, onSuccess
           </div>
 
           {/* Cantidad */}
-          <div>
-            <label htmlFor="cantidad" className="block text-sm font-medium text-gray-700 mb-1">
-              Cantidad
-            </label>
-            <input
-              id="cantidad"
-              name="cantidad"
-              type="number"
-              value={cantidad}
-              onChange={(e) => setCantidad(e.target.value)}
-              className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-              min="1"
-              step="any"
-            />
-          </div>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-3">
+            <div className="flex-1">
+              <label
+                htmlFor="cantidad"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Cantidad
+              </label>
+              <input
+                id="cantidad"
+                type="number"
+                value={cantidad}
+                onChange={(e) => setCantidad(e.target.value)}
+                className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                required
+                min="1"
+                step="any"
+              />
+            </div>
 
-          {/* Unidad */}
-          <div>
-            <label htmlFor="unidad" className="block text-sm font-medium text-gray-700 mb-1">
-              Unidad
-            </label>
-            <input
-              id="unidad"
-              name="unidad"
-              type="text"
-              value={unidad}
-              readOnly
-              className="w-full border px-3 py-2 rounded-lg text-sm bg-gray-100 text-gray-600"
-            />
+            {/* Unidad */}
+            <div className="sm:w-28">
+              <label
+                htmlFor="unidad"
+                className="block text-sm font-medium text-gray-700 mb-1 mt-3 sm:mt-0"
+              >
+                Unidad
+              </label>
+              <input
+                id="unidad"
+                type="text"
+                value={unidad}
+                readOnly
+                className="w-full border px-3 py-2 rounded-lg text-sm bg-gray-100 text-gray-600"
+              />
+            </div>
           </div>
 
           {/* Motivo dinámico */}
           <div>
-            <label htmlFor="motivo" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="motivo"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Motivo
             </label>
             <select
               id="motivo"
-              name="motivo"
               value={motivo}
               onChange={(e) => setMotivo(e.target.value)}
-              className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full border border-gray-300 px-3 py-2 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
               required
               disabled={loadingMotivos}
             >
-              <option value="">{loadingMotivos ? "Cargando..." : "Seleccione un motivo"}</option>
+              <option value="">
+                {loadingMotivos ? "Cargando motivos..." : "Seleccione un motivo"}
+              </option>
               {motivos.map((m) => (
                 <option key={m.parametro_id ?? m.valor} value={m.valor}>
                   {m.valor}
@@ -198,17 +215,17 @@ export default function RegistroConsumoModal({ visible, task, onClose, onSuccess
           </div>
 
           {/* Botones */}
-          <div className="flex justify-end space-x-3 pt-2">
+          <div className="flex flex-col sm:flex-row justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+              className="w-full sm:w-auto px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition shadow-sm"
+              className="w-full sm:w-auto px-4 py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 active:bg-blue-800 transition shadow-sm"
             >
               Registrar
             </button>
